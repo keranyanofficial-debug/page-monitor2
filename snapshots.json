@@ -13,6 +13,22 @@
     "selector": ".instock.availability",
     "hash": "9b0fe48957bc45081c1ebde498e24c669e3781dd5c82b76bae02867e14e7f338",
     "value_preview": "In stock (10 available)",
-    "updated_at": 1765593601
+    "updated_at": 1765594514
+  },
+  "jma_extra": {
+    "name": "気象庁 防災情報(随時フィード)",
+    "url": "https://www.data.jma.go.jp/developer/xml/feed/extra.xml",
+    "selector": "entry > title",
+    "hash": "597239f57a64915714fe3f5e8aa87726327915a8ab27364da1d70b190c8f7e47",
+    "value_preview": "府県気象情報",
+    "updated_at": 1765594514
+  },
+  "egov_news": {
+    "name": "e-Gov 法令API/お知らせ",
+    "url": "https://laws.e-gov.go.jp/news/",
+    "selector": "",
+    "hash": "a5372c9f679ab3b4b247018d15ebc9cb2c6be0fd5cf8e74a1f116e3d89b5d14f",
+    "value_preview": "お知らせ | e-Gov法令検索 法令検索 ヘルプ お知らせ 2025-03-19 法令APIバージョン2 リリースのお知らせ 2025年3月19日に、法令APIバージョン2をリリースしました。 法令APIバージョン2リリースのお知らせ OpenAPI仕様でご利用のブラウザから視覚的にAPIをお試しいただくことができます。 取得可能な法令データや機能を拡充しておりますので、ぜひご利用ください。 U",
+    "updated_at": 1765594514
   }
 }
