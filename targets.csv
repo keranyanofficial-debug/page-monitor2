@@ -1,3 +1,3 @@
 id,name,url,selector
-books_home,Books Home,https://books.toscrape.com/,
-book_581,Green Smoothie,https://books.toscrape.com/catalogue/10-day-green-smoothie-cleanse-lose-up-to-15-pounds-in-10-days_581/index.html,
+book_581,Green Smoothie price,https://books.toscrape.com/catalogue/10-day-green-smoothie-cleanse-lose-up-to-15-pounds-in-10-days_581/index.html,.instock.availability
+book_581_stock,Green Smoothie stock,https://books.toscrape.com/catalogue/10-day-green-smoothie-cleanse-lose-up-to-15-pounds-in-10-days_581/index.html,.instock.availability
