@@ -1,3 +1,5 @@
 id,name,url,selector
+jma_extra,気象庁 防災情報(随時フィード),https://www.data.jma.go.jp/developer/xml/feed/extra.xml,entry > title
+egov_news,e-Gov 法令API/お知らせ,https://laws.e-gov.go.jp/news/,
 book_581_stock,Green Smoothie stock,https://books.toscrape.com/catalogue/10-day-green-smoothie-cleanse-lose-up-to-15-pounds-in-10-days_581/index.html,.price_color
 book_581_stock,Green Smoothie stock,https://books.toscrape.com/catalogue/10-day-green-smoothie-cleanse-lose-up-to-15-pounds-in-10-days_581/index.html,.instock.availability
