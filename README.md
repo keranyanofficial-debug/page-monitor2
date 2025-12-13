@@ -4,7 +4,7 @@ Webページ / Atom(XML)フィードの更新を定期チェックして、差�
 監視対象は `targets.csv` に追記するだけで増やせます（HTMLはCSSセレクタで“特定部分だけ監視”も可能）。
 
 ## Demo
-![Discord通知](discord-demo.png)
+![Discord通知](discord-demo.png.png)
 
 ## Features
 - GitHub Actionsで自動実行（スケジュール / 手動実行）
