@@ -1,4 +1,13 @@
 # Page Monitor (GitHub Actions + Discord)
+🇯🇵 日本語 / 🇺🇸 English
+
+- [日本語](#日本語)
+- [English](#english)
+## 日本語
+（日本語の説明）
+
+## English
+(English description)
 
 Webページ / Atom(XML)の更新を監視して、変化があればDiscordに通知します。
 
