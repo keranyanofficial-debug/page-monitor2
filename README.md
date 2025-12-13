@@ -3,7 +3,7 @@
 Webページ / Atom(XML)の更新を監視して、変化があればDiscordに通知します。
 
 ## Demo
-（ここにスクショを貼る予定）
+![Discord通知](discord-demo.png.png)
 
 ## Setup
 1. GitHub Secrets に DISCORD_WEBHOOK_URL を登録
