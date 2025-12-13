@@ -1,120 +1,146 @@
-import os
-import re
-import time
-import json
+import os, csv, json, time, hashlib
 import requests
-import pandas as pd
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
 
-BASE = "https://books.toscrape.com/"
-START = urljoin(BASE, "catalogue/page-1.html")
-SNAPSHOT_FILE = "snapshot_latest.csv"
+TARGETS_CSV = "targets.csv"
+SNAPSHOT_JSON = "snapshots.json"
 
-def normalize_price(s):
-    if pd.isna(s):
-        return None
-    m = re.search(r"([0-9]+(?:\.[0-9]+)?)", str(s))
-    return float(m.group(1)) if m else None
+def load_targets():
+    targets = []
+    with open(TARGETS_CSV, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # 必須: id, url
+            if not row.get("id") or not row.get("url"):
+                continue
+            row["selector"] = (row.get("selector") or "").strip()
+            row["name"] = (row.get("name") or row["id"]).strip()
+            targets.append(row)
+    return targets
 
-def scrape_all_books():
-    url = START
-    rows = []
-    while url:
-        r = requests.get(url, headers={"User-Agent":"PageMonitorBot/1.0"}, timeout=30)
-        r.raise_for_status()
-        r.encoding = "utf-8"
-        soup = BeautifulSoup(r.text, "html.parser")
+def normalize_text(s: str) -> str:
+    return " ".join((s or "").split())
 
-        for a in soup.select("article.product_pod h3 a"):
-            title = a.get("title")
-            rel = a.get("href")
-            product_url = urljoin(url, rel)
+def fetch_page(url: str) -> str:
+    r = requests.get(url, headers={"User-Agent": "PageMonitorBot/1.0"}, timeout=30)
+    r.raise_for_status()
+    r.encoding = "utf-8"
+    return r.text
 
-            pod = a.find_parent("article")
-            price = pod.select_one(".price_color").get_text(strip=True)
-            stock = pod.select_one(".instock.availability").get_text(" ", strip=True)
+def extract_value(html: str, selector: str) -> str:
+    # selectorが空なら「ページ全体のテキスト」を監視（A）
+    soup = BeautifulSoup(html, "html.parser")
+    if not selector:
+        return normalize_text(soup.get_text(" ", strip=True))
 
-            rows.append({"product_url": product_url, "title": title, "price": price, "stock": stock})
+    # selectorがあるなら「その要素だけ」を監視（B）
+    el = soup.select_one(selector)
+    if not el:
+        return ""  # 要素が取れない場合は空（＝変化として検知しやすい）
+    return normalize_text(el.get_text(" ", strip=True))
 
-        next_a = soup.select_one("li.next a")
-        url = urljoin(url, next_a["href"]) if next_a else None
-        time.sleep(1)
+def sha256(s: str) -> str:
+    return hashlib.sha256((s or "").encode("utf-8")).hexdigest()
 
-    df = pd.DataFrame(rows)
-    df["price_num"] = df["price"].apply(normalize_price)
-    df = df.sort_values("product_url").reset_index(drop=True)
-    return df[["product_url","title","price","price_num","stock"]]
+def load_snapshots():
+    if not os.path.exists(SNAPSHOT_JSON):
+        return {}
+    with open(SNAPSHOT_JSON, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-def diff(old_df, new_df):
-    old_key = old_df.drop_duplicates(subset=["product_url"]).set_index("product_url")
-    new_key = new_df.drop_duplicates(subset=["product_url"]).set_index("product_url")
+def save_snapshots(data):
+    with open(SNAPSHOT_JSON, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
-    added = new_key.loc[new_key.index.difference(old_key.index)].reset_index()
-    removed = old_key.loc[old_key.index.difference(new_key.index)].reset_index()
-    common = new_key.index.intersection(old_key.index)
-
-    merged = pd.DataFrame(index=common)
-    merged["old_price"] = old_key.loc[common, "price_num"]
-    merged["new_price"] = new_key.loc[common, "price_num"]
-    merged["old_stock"] = old_key.loc[common, "stock"]
-    merged["new_stock"] = new_key.loc[common, "stock"]
-
-    changed_price = merged[merged["old_price"] != merged["new_price"]].reset_index()
-    changed_stock = merged[merged["old_stock"] != merged["new_stock"]].reset_index()
-
-    return added, removed, changed_price, changed_stock, new_key
-
-def notify_discord(webhook_url, added, removed, changed_price, changed_stock, new_key):
+def discord_post(webhook_url: str, text: str):
     if not webhook_url:
-        print("DISCORD_WEBHOOK_URL empty")
+        print("DISCORD_WEBHOOK_URL empty; skip notify")
         return
-    if len(added)==0 and len(removed)==0 and len(changed_price)==0 and len(changed_stock)==0:
-        print("No changes. Skip notify.")
-        return
-
-    lines = ["🚨 PageMonitor: 更新検知（Books to Scrape）"]
-
-    if len(changed_price) > 0:
-        lines.append(f"💰 価格変更: {len(changed_price)}件（上位3件）")
-        for _, r in changed_price.head(3).iterrows():
-            u = r["product_url"]
-            title = new_key.loc[u, "title"]
-            lines.append(f"- {title}: {r['old_price']} → {r['new_price']}")
-            lines.append(f"  {u}")
-
-    if len(changed_stock) > 0:
-        lines.append(f"📦 在庫変更: {len(changed_stock)}件（上位3件）")
-        for _, r in changed_stock.head(3).iterrows():
-            u = r["product_url"]
-            title = new_key.loc[u, "title"]
-            lines.append(f"- {title}: {r['old_stock']} → {r['new_stock']}")
-            lines.append(f"  {u}")
-
-    msg = "\n".join(lines)
-    res = requests.post(webhook_url, data=json.dumps({"content": msg}),
-                        headers={"Content-Type":"application/json"}, timeout=30)
-    print("discord status:", res.status_code)
+    # Discordはcontentで送る。長すぎると失敗するので分割
+    chunks = []
+    while text:
+        chunks.append(text[:1800])
+        text = text[1800:]
+    for c in chunks:
+        res = requests.post(
+            webhook_url,
+            data=json.dumps({"content": c}),
+            headers={"Content-Type": "application/json"},
+            timeout=30,
+        )
+        print("discord status:", res.status_code)
 
 def main():
-    webhook_url = os.getenv("DISCORD_WEBHOOK_URL","")
-    new_df = scrape_all_books()
+    webhook_url = os.getenv("DISCORD_WEBHOOK_URL", "")
+    targets = load_targets()
+    snapshots = load_snapshots()
 
-    if not os.path.exists(SNAPSHOT_FILE):
-        new_df.to_csv(SNAPSHOT_FILE, index=False, encoding="utf-8")
-        print(f"First run: created {SNAPSHOT_FILE}")
+    if not targets:
+        print("No targets found in targets.csv")
         return
 
-    old_df = pd.read_csv(SNAPSHOT_FILE)
-    added, removed, changed_price, changed_stock, new_key = diff(old_df, new_df)
+    changes = []
+    now = int(time.time())
 
-    print("added:", len(added), "removed:", len(removed),
-          "price changed:", len(changed_price), "stock changed:", len(changed_stock))
+    for t in targets:
+        tid = t["id"]
+        name = t["name"]
+        url = t["url"]
+        selector = t["selector"]
 
-    notify_discord(webhook_url, added, removed, changed_price, changed_stock, new_key)
+        try:
+            html = fetch_page(url)
+            value = extract_value(html, selector)
+            h = sha256(value)
+        except Exception as e:
+            changes.append(f"⚠️ 取得失敗: {name}\n{url}\n{type(e).__name__}: {e}")
+            continue
 
-    new_df.to_csv(SNAPSHOT_FILE, index=False, encoding="utf-8")
-    print(f"updated {SNAPSHOT_FILE}")
+        prev = snapshots.get(tid)
+        if not prev:
+            # 初回登録
+            snapshots[tid] = {
+                "name": name,
+                "url": url,
+                "selector": selector,
+                "hash": h,
+                "value_preview": value[:200],
+                "updated_at": now,
+            }
+            print(f"First seen: {tid}")
+            continue
+
+        if prev.get("hash") != h:
+            old_preview = (prev.get("value_preview") or "")[:200]
+            new_preview = value[:200]
+            changes.append(
+                "🚨 更新検知\n"
+                f"- {name}\n"
+                f"- {url}\n"
+                + (f"- selector: `{selector}`\n" if selector else "- selector: (page text)\n")
+                + f"- before: {old_preview}\n"
+                + f"- after : {new_preview}\n"
+            )
+
+            snapshots[tid].update({
+                "name": name,
+                "url": url,
+                "selector": selector,
+                "hash": h,
+                "value_preview": new_preview,
+                "updated_at": now,
+            })
+
+        time.sleep(1)
+
+    # 保存（次回比較用）
+    save_snapshots(snapshots)
+    print(f"updated {SNAPSHOT_JSON}")
+
+    if changes:
+        discord_post(webhook_url, "\n\n".join(changes))
+    else:
+        print("No changes. Skip notify.")
 
 if __name__ == "__main__":
     main()
