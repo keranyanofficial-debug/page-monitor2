@@ -19,9 +19,9 @@
     "name": "気象庁 防災情報(随時/毎分)",
     "url": "https://www.data.jma.go.jp/developer/xml/feed/extra.xml",
     "selector": "",
-    "hash": "23820f22a4b323f005b475755ba6fccff9849c482176d02222b1f3beac702716",
-    "preview": "全般気象情報 / 府県気象情報 / 府県気象情報 / 府県気象情報 / 府県気象情報",
-    "updated_at_jst": "2025-12-13 17:17:08 JST"
+    "hash": "01b56bf0dc54f7ac586ae16673ae340c3b240237e5147f687c2a8f642293464a",
+    "preview": "気象特別警報・警報・注意報 / 気象警報・注意報（Ｈ２７） / 気象特別警報・警報・注意報 / 気象警報・注意報（Ｈ２７） / 気象特別警報・警報・注意報",
+    "updated_at_jst": "2025-12-13 20:11:40 JST"
   },
   "egov_news": {
     "name": "e-Gov 法令API/お知らせ",
