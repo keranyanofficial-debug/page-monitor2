@@ -35,8 +35,10 @@ jobs:
       - name: Run monitor
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          NOTIFY_FIRST_SEEN: "1"
         run: |
           python monitor.py
+
 
       - name: Commit snapshot if changed
         run: |
