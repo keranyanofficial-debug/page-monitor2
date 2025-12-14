@@ -324,6 +324,13 @@ def main():
             continue
 
         prev = snapshots.get(tid)
+        # ✅ keywordがあるのに一致0件なら「通知しない＆前回状態を維持」
+        # （一致が出た時だけ通知するため）
+        if (keyword or "").strip() and not (new_preview or "").strip():
+            if prev and (prev.get("preview") or "").strip():
+                print(f"No keyword match now: {tid} -> keep previous snapshot (skip notify)")
+                time.sleep(1)
+                continue
 
         if not prev:
             snapshots[tid] = {
