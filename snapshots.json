@@ -40,7 +40,9 @@
     "keyword": "震度速報|震源・震度|緊急地震速報|津波警報|津波注意報|津波予報|津波情報|!火山|!噴火",
     "hash": "18663923349d7eef9604bed37e072641cecdf3193197ee4ea86ee76d2adfd5b6",
     "preview": "震源・震度に関する情報 / 震源・震度に関する情報",
-    "updated_at_jst": "2025-12-14 10:16:04 JST"
+    "updated_at_jst": "2025-12-14 11:00:32 JST",
+    "etag": "W/\"b507096481e62c912be16a517af6420d\"",
+    "last_modified": "Sat, 13 Dec 2025 23:01:24 GMT"
   },
   "egov_law": {
     "name": "法令APIv2(例)",
@@ -67,16 +69,20 @@
     "keyword": "",
     "hash": "a8bbf7ec30683a8d80529e73a0c15c4a9a44f3256ef2c0fe0ed03444784c6936",
     "preview": "macos-15 (20251210) Image Update / macos-15-arm64 (20251210) Image Update / macos-14-arm64 (20251210) Image Update / Windows Server 2025 (20251208) Image Update / Windows Server 2022 (20251207) Image Update",
-    "updated_at_jst": "2025-12-14 10:46:35 JST"
+    "updated_at_jst": "2025-12-14 11:00:32 JST",
+    "etag": "W/\"ee2d93c046eec518f20672493bbe8bbd\"",
+    "last_modified": null
   },
   "gh_runner_images_api": {
-    "name": "GitHub Releases API（runner-images / JSON）",
+    "name": "GitHub Releases API（JSON）",
     "url": "https://api.github.com/repos/actions/runner-images/releases",
-    "selector": "tag_name,name,html_url,published_at",
+    "selector": "tag_name,name,published_at",
     "keyword": "",
-    "hash": "a6b1ae902507e77339b0bd2b0ee560749c13dcfe706e75aec3f28056964b9bea",
-    "preview": "tag_name=macos-14-arm64/20251111.0092 name=macOS 14 arm64 (20251111) Image Update html_url=https://github.com/actions/runner-images/releases/tag/macos-14-arm64/20251111.0092 published_at=2025-11-17T14:26:20Z",
-    "updated_at_jst": "2025-12-14 10:46:35 JST"
+    "hash": "49ad129bc1ae297b9183c5965f72e1955a59653ca714d16f0d64321b83ea9052",
+    "preview": "tag_name=macos-14-arm64/20251111.0092 name=macOS 14 arm64 (20251111) Image Update published_at=2025-11-17T14:26:20Z",
+    "updated_at_jst": "2025-12-14 11:00:32 JST",
+    "etag": "W/\"6ed4dd932546d17b90d8368dfbabc59fe67af3a8be03e5c6e24fe4cd25b90c4c\"",
+    "last_modified": null
   },
   "gh_status_atom": {
     "name": "GitHub Status（障害/メンテ / Atom）",
@@ -85,6 +91,19 @@
     "keyword": "",
     "hash": "d1facb2c3a54b7df34c77be67ca0a4c1b73cacf7316f1da6cdcf87af43bec9fd",
     "preview": "Disruptions in Login and Signup Flows / We are investigating a rise in request failures on several services / Some macOS Actions jobs routing to Ubuntu instead / Some Actions customers experiencing run start delays / Disruption with some GitHub services",
-    "updated_at_jst": "2025-12-14 10:46:35 JST"
+    "updated_at_jst": "2025-12-14 11:00:32 JST",
+    "etag": "W/\"189faf407e8b50c228294f02ff5a0e67\"",
+    "last_modified": null
+  },
+  "egov_lawapi_v2_kw": {
+    "name": "e-Gov 法令API v2（キーワード検索/JSON）",
+    "url": "https://laws.e-gov.go.jp/api/2/keyword?keyword=個人情報",
+    "selector": "",
+    "keyword": "",
+    "hash": "09a505e8c99b9a74a456f295dcc6dea4a931b1387a2404b2fc450d4d2cf74914",
+    "preview": "law_info={\"law_id\": \"129AC0000000089\", \"law_num\": \"明治二十九年法律第八十九号\", \"law_num_era\": \"Meiji\", \"law_num_num\": \"089\", \"law_num_type\": \"Act\", \"law_num_year\": 29, \"law_type\": \"Act\", \"promulgation_date\": \"1896-04-27\"} revision_info={\"abbrev\": \"\", \"amendment_enforcement_comment\": null, \"amendment_enforcement",
+    "updated_at_jst": "2025-12-14 11:00:32 JST",
+    "etag": null,
+    "last_modified": null
   }
 }
