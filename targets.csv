@@ -1,3 +1,4 @@
 id,name,url,selector,keyword
 jma_extra,気象庁 防災情報,https://www.data.jma.go.jp/developer/xml/feed/extra.xml,,地震|津波|特別警報
 egov_news,e-Gov お知らせ,https://laws.e-gov.go.jp/news/,,API|リリース
+jgrants_it,Jグランツ 補助金(IT/DX 受付中),https://api.jgrants-portal.go.jp/exp/v1/public/subsidies?keyword=IT&sort=acceptance_end_datetime&order=ASC&acceptance=1,json:result,IT|DX|デジタル|クラウド
