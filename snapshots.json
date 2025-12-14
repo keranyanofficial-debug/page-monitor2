@@ -50,5 +50,14 @@
     "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "preview": "(no match)",
     "updated_at_jst": "2025-12-14 10:16:04 JST"
+  },
+  "jma_extra_test": {
+    "name": "気象庁 防災情報",
+    "url": "https://www.data.jma.go.jp/developer/xml/feed/extra.xml",
+    "selector": "",
+    "keyword": "地震|津波|特別警報",
+    "hash": "aa563b7ff9557940110f6339ac26b6554bfad3887b5f25eb5763bdb3fbc5cab6",
+    "preview": "気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報",
+    "updated_at_jst": "2025-12-14 10:37:51 JST"
   }
 }
