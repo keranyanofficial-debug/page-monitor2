@@ -59,5 +59,32 @@
     "hash": "aa563b7ff9557940110f6339ac26b6554bfad3887b5f25eb5763bdb3fbc5cab6",
     "preview": "気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報",
     "updated_at_jst": "2025-12-14 10:37:51 JST"
+  },
+  "gh_runner_images_atom": {
+    "name": "GitHub actions/runner-images リリース（Atom）",
+    "url": "https://github.com/actions/runner-images/releases.atom",
+    "selector": "",
+    "keyword": "",
+    "hash": "a8bbf7ec30683a8d80529e73a0c15c4a9a44f3256ef2c0fe0ed03444784c6936",
+    "preview": "macos-15 (20251210) Image Update / macos-15-arm64 (20251210) Image Update / macos-14-arm64 (20251210) Image Update / Windows Server 2025 (20251208) Image Update / Windows Server 2022 (20251207) Image Update",
+    "updated_at_jst": "2025-12-14 10:46:35 JST"
+  },
+  "gh_runner_images_api": {
+    "name": "GitHub Releases API（runner-images / JSON）",
+    "url": "https://api.github.com/repos/actions/runner-images/releases",
+    "selector": "tag_name,name,html_url,published_at",
+    "keyword": "",
+    "hash": "a6b1ae902507e77339b0bd2b0ee560749c13dcfe706e75aec3f28056964b9bea",
+    "preview": "tag_name=macos-14-arm64/20251111.0092 name=macOS 14 arm64 (20251111) Image Update html_url=https://github.com/actions/runner-images/releases/tag/macos-14-arm64/20251111.0092 published_at=2025-11-17T14:26:20Z",
+    "updated_at_jst": "2025-12-14 10:46:35 JST"
+  },
+  "gh_status_atom": {
+    "name": "GitHub Status（障害/メンテ / Atom）",
+    "url": "https://www.githubstatus.com/history.atom",
+    "selector": "",
+    "keyword": "",
+    "hash": "d1facb2c3a54b7df34c77be67ca0a4c1b73cacf7316f1da6cdcf87af43bec9fd",
+    "preview": "Disruptions in Login and Signup Flows / We are investigating a rise in request failures on several services / Some macOS Actions jobs routing to Ubuntu instead / Some Actions customers experiencing run start delays / Disruption with some GitHub services",
+    "updated_at_jst": "2025-12-14 10:46:35 JST"
   }
 }
