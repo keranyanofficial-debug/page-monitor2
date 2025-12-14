@@ -40,7 +40,7 @@
     "keyword": "震度速報|震源・震度|緊急地震速報|津波警報|津波注意報|津波予報|津波情報|!火山|!噴火",
     "hash": "18663923349d7eef9604bed37e072641cecdf3193197ee4ea86ee76d2adfd5b6",
     "preview": "震源・震度に関する情報 / 震源・震度に関する情報",
-    "updated_at_jst": "2025-12-14 11:14:35 JST",
+    "updated_at_jst": "2025-12-14 11:17:25 JST",
     "etag": "W/\"ad2c4423bd6cbe512271bec6eab22fbb\"",
     "last_modified": "Sun, 14 Dec 2025 02:01:28 GMT"
   },
@@ -69,7 +69,7 @@
     "keyword": "",
     "hash": "a8bbf7ec30683a8d80529e73a0c15c4a9a44f3256ef2c0fe0ed03444784c6936",
     "preview": "macos-15 (20251210) Image Update / macos-15-arm64 (20251210) Image Update / macos-14-arm64 (20251210) Image Update / Windows Server 2025 (20251208) Image Update / Windows Server 2022 (20251207) Image Update",
-    "updated_at_jst": "2025-12-14 11:14:35 JST",
+    "updated_at_jst": "2025-12-14 11:17:25 JST",
     "etag": "W/\"ee2d93c046eec518f20672493bbe8bbd\"",
     "last_modified": null
   },
@@ -80,7 +80,7 @@
     "keyword": "",
     "hash": "49ad129bc1ae297b9183c5965f72e1955a59653ca714d16f0d64321b83ea9052",
     "preview": "tag_name=macos-14-arm64/20251111.0092 name=macOS 14 arm64 (20251111) Image Update published_at=2025-11-17T14:26:20Z",
-    "updated_at_jst": "2025-12-14 11:14:35 JST",
+    "updated_at_jst": "2025-12-14 11:17:25 JST",
     "etag": "W/\"6ed4dd932546d17b90d8368dfbabc59fe67af3a8be03e5c6e24fe4cd25b90c4c\"",
     "last_modified": null
   },
@@ -91,7 +91,7 @@
     "keyword": "",
     "hash": "d1facb2c3a54b7df34c77be67ca0a4c1b73cacf7316f1da6cdcf87af43bec9fd",
     "preview": "Disruptions in Login and Signup Flows / We are investigating a rise in request failures on several services / Some macOS Actions jobs routing to Ubuntu instead / Some Actions customers experiencing run start delays / Disruption with some GitHub services",
-    "updated_at_jst": "2025-12-14 11:14:35 JST",
+    "updated_at_jst": "2025-12-14 11:17:25 JST",
     "etag": "W/\"189faf407e8b50c228294f02ff5a0e67\"",
     "last_modified": null
   },
@@ -113,7 +113,7 @@
     "keyword": "",
     "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "preview": "(no match)",
-    "updated_at_jst": "2025-12-14 11:14:35 JST",
+    "updated_at_jst": "2025-12-14 11:17:25 JST",
     "etag": null,
     "last_modified": null
   },
@@ -124,7 +124,7 @@
     "keyword": "",
     "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "preview": "(no match)",
-    "updated_at_jst": "2025-12-14 11:14:35 JST",
+    "updated_at_jst": "2025-12-14 11:17:25 JST",
     "etag": null,
     "last_modified": null
   },
