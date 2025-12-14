@@ -13,6 +13,9 @@ MAX_ATOM_ITEMS = int(os.getenv("MAX_ATOM_ITEMS", "5"))
 MAX_HTML_LINKS = int(os.getenv("MAX_HTML_LINKS", "8"))
 JST = ZoneInfo("Asia/Tokyo")
 
+# ★ 初回検知でも通知する（1なら通知、0なら従来どおり初回は通知しない）
+NOTIFY_FIRST_SEEN = os.getenv("NOTIFY_FIRST_SEEN", "0") == "1"
+
 def now_jst_str():
     return datetime.now(timezone.utc).astimezone(JST).strftime("%Y-%m-%d %H:%M:%S JST")
 
@@ -62,7 +65,7 @@ def match_any(text: str, kws):
 
     inc = kws.get("includes", [])
     if not inc:
-        return True  # include無し＆excludeだけ なら除外に引っかからない限りOK
+        return True  # include無し＆excludeだけなら除外に引っかからない限りOK
     return any(k in t for k in inc)
 
 def load_targets():
@@ -91,8 +94,6 @@ def save_snapshots(data):
 def fetch(url: str):
     r = requests.get(url, headers={"User-Agent":"PageMonitorBot/1.0"}, timeout=30)
     r.raise_for_status()
-    # 文字コードはサーバが返す情報に任せつつ、念のためutf-8へ寄せる
-    # （JSON/Atomはutf-8が多い）
     r.encoding = "utf-8"
     ctype = (r.headers.get("Content-Type") or "").lower()
     return r.text, ctype
@@ -136,7 +137,6 @@ def parse_atom(xml_text: str, base_url: str, kws):
 
     entries = entries[:MAX_ATOM_ITEMS]
 
-    # フィルタ後の内容だけでハッシュ（＝関係ない更新では通知しない）
     hash_src = "\n".join([f"{x.get('id')}|{x.get('updated')}|{x.get('title')}|{x.get('link')}" for x in entries])
     preview = " / ".join([x.get("title","") for x in entries])[:300]
 
@@ -161,11 +161,9 @@ def parse_atom(xml_text: str, base_url: str, kws):
 def parse_html(html: str, base_url: str, selector: str, kws):
     soup = BeautifulSoup(html, "html.parser")
 
-    # selector指定：その部分のテキストだけ監視
     if selector:
         el = soup.select_one(selector)
         text = normalize_text(el.get_text(" ", strip=True)) if el else ""
-        # キーワードがある時は、マッチしないなら「空」として扱う（通知しない）
         if not match_any(text, kws):
             text = ""
         hash_src = text
@@ -173,7 +171,6 @@ def parse_html(html: str, base_url: str, selector: str, kws):
         lines = [f"- value: {preview}"] if preview else ["- value: (no keyword match / empty)"]
         return hash_src, preview, lines
 
-    # selector無し：タイトル＋主要リンクを抽出（要約）
     title = normalize_text(soup.title.get_text(strip=True)) if soup.title else ""
     main = soup.find("main") or soup.body or soup
 
@@ -187,7 +184,6 @@ def parse_html(html: str, base_url: str, selector: str, kws):
             continue
         absu = urljoin(base_url, href)
 
-        # キーワードフィルタ（リンク文言＋URL）
         if not match_any(txt + " " + absu, kws):
             continue
 
@@ -195,7 +191,6 @@ def parse_html(html: str, base_url: str, selector: str, kws):
         if len(links) >= MAX_HTML_LINKS:
             break
 
-    # フィルタ後リンクだけで比較（＝関係ない更新は通知しない）
     hash_src = title + "\n" + "\n".join([f"{t}|{u}" for t,u in links])
     preview = (title or (links[0][0] if links else ""))[:300]
 
@@ -211,10 +206,9 @@ def parse_html(html: str, base_url: str, selector: str, kws):
     return hash_src, preview, lines
 
 # ----------------------------
-# JSON API 解析（追加）
+# JSON API 解析
 # ----------------------------
 def _pick_first_list(obj):
-    """JSONの中から 'それっぽいリスト' を拾う（汎用）"""
     if isinstance(obj, list):
         return obj
     if isinstance(obj, dict):
@@ -236,14 +230,8 @@ def _flatten_dict(d, keys):
     return " ".join(out)
 
 def parse_json_api(json_text: str, kws, selector: str = ""):
-    """
-    JSON API監視:
-    - selectorがある場合：'key1,key2,key3' で重要キー指定（JSON専用）
-    - selectorが空：itemsっぽいリストを推定→重要フィールドを行化→ソートして安定化
-    """
     obj = json.loads(json_text)
 
-    # JSON用 selector: "lawTitle,lawNum,updated" のようにキー指定
     keys = [x.strip() for x in (selector or "").split(",") if x.strip()]
 
     lines = []
@@ -267,14 +255,12 @@ def parse_json_api(json_text: str, kws, selector: str = ""):
             lines.append(f"- {row}")
             hash_lines.append(row)
 
-        # 順番ブレで差分が出ないように安定化
         hash_lines = sorted(hash_lines)
 
         hash_src = "\n".join(hash_lines)
         preview = (hash_lines[0] if hash_lines else "(no match)")[:300]
         return hash_src, preview, lines[:MAX_ATOM_ITEMS]
 
-    # リスト形式じゃない場合：全体を正規化して監視（ただし差分は荒れやすいので最終手段）
     canon = json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     if not match_any(canon, kws):
         canon = ""
@@ -296,10 +282,8 @@ def extract_observation(url: str, body: str, content_type: str, selector: str, k
 
     if is_json:
         return parse_json_api(body, kws, selector)
-
     if is_xml:
         return parse_atom(body, url, kws)
-
     return parse_html(body, url, selector, kws)
 
 # ----------------------------
@@ -351,16 +335,30 @@ def main():
 
         prev = snapshots.get(tid)
 
-        # 初回は登録だけ（通知しない）
+        # 初回
         if not prev:
             snapshots[tid] = {
                 "name": name, "url": url, "selector": selector, "keyword": keyword,
                 "hash": new_hash, "preview": new_preview, "updated_at_jst": ts
             }
             print(f"First seen: {tid}")
+
+            # ★ 初回通知スイッチ
+            if NOTIFY_FIRST_SEEN:
+                header = f"🆕 初回登録 [{name}]\n🕘 {ts}\n{url}"
+                if selector:
+                    header += f"\nselector: {selector}"
+                if keyword:
+                    header += f"\nkeyword: {keyword}"
+                msg = header + f"\npreview: {new_preview[:300]}"
+                if new_lines:
+                    msg += "\n\n最新の内容（抜粋）\n" + "\n".join(new_lines[:40])
+                changes_msgs.append(msg)
+
             time.sleep(1)
             continue
 
+        # 更新
         if prev.get("hash") != new_hash:
             old_preview = (prev.get("preview") or "")[:300]
             header = f"🚨 更新検知 [{name}]\n🕘 {ts}\n{url}"
