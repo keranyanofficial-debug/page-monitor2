@@ -5,4 +5,4 @@ gh_runner_images_api,GitHub Releases API（JSON）,https://api.github.com/repos/
 gh_status_atom,GitHub Status history（Atom）,https://www.githubstatus.com/history.atom,,
 egov_privacy,e-Gov 法令API v2（個人情報/プライバシー）,https://laws.e-gov.go.jp/api/2/keyword?keyword=個人情報,"law_title,law_num,updated,amendment_law_title,amendment_promulgate_date,amendment_enforcement_date","amendment|updated|enforcement|promulgate|改正|施行|公布"
 egov_security,e-Gov 法令API v2（セキュリティ）,https://laws.e-gov.go.jp/api/2/keyword?keyword=サイバーセキュリティ,"law_title,law_num,updated,amendment_law_title,amendment_promulgate_date,amendment_enforcement_date","amendment|updated|enforcement|promulgate|改正|施行|公布"
-heartbeat,稼働確認（JST時刻/JSON）,https://worldtimeapi.org/api/timezone/Asia/Tokyo,"datetime,unixtime",
+heartbeat,稼働確認（UUID/JSON）,https://httpbin.org/uuid,uuid,
