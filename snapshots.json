@@ -16,19 +16,21 @@
     "updated_at": 1765598262
   },
   "jma_extra": {
-    "name": "気象庁 防災情報(随時/毎分)",
+    "name": "気象庁 防災情報",
     "url": "https://www.data.jma.go.jp/developer/xml/feed/extra.xml",
     "selector": "",
-    "hash": "01b56bf0dc54f7ac586ae16673ae340c3b240237e5147f687c2a8f642293464a",
-    "preview": "気象特別警報・警報・注意報 / 気象警報・注意報（Ｈ２７） / 気象特別警報・警報・注意報 / 気象警報・注意報（Ｈ２７） / 気象特別警報・警報・注意報",
-    "updated_at_jst": "2025-12-13 20:11:40 JST"
+    "keyword": "地震|津波|特別警報",
+    "hash": "b396049f274d04a97d606daa3c1ab7497238743509ead7a1c6f1b55911e6aa9c",
+    "preview": "気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報",
+    "updated_at_jst": "2025-12-14 09:39:38 JST"
   },
   "egov_news": {
-    "name": "e-Gov 法令API/お知らせ",
+    "name": "e-Gov お知らせ",
     "url": "https://laws.e-gov.go.jp/news/",
     "selector": "",
-    "hash": "111b7f4499f30e8fb512918aa49b08cb3cb41a623124ef247d0d98a9adab0fe5",
+    "keyword": "API|リリース",
+    "hash": "653785e241f42e29478f977a2825c7622e9f33ff7817f870126b63e53467ba09",
     "preview": "お知らせ | e-Gov法令検索",
-    "updated_at_jst": "2025-12-13 13:27:31 JST"
+    "updated_at_jst": "2025-12-14 09:39:38 JST"
   }
 }
