@@ -20,9 +20,9 @@
     "url": "https://www.data.jma.go.jp/developer/xml/feed/extra.xml",
     "selector": "",
     "keyword": "地震|津波|特別警報",
-    "hash": "877ae9d3deac9a10e452254e98eb4533a6ad1792e49fd4fcab5b09495867e1e5",
-    "preview": "気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報",
-    "updated_at_jst": "2025-12-14 11:28:28 JST"
+    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preview": "",
+    "updated_at_jst": "2025-12-14 11:52:41 JST"
   },
   "egov_news": {
     "name": "e-Gov お知らせ",
@@ -138,5 +138,14 @@
     "updated_at_jst": "2025-12-14 11:14:35 JST",
     "etag": null,
     "last_modified": null
+  },
+  "jgrants_it": {
+    "name": "Jグランツ 補助金(IT/DX 受付中)",
+    "url": "https://api.jgrants-portal.go.jp/exp/v1/public/subsidies?keyword=IT&sort=acceptance_end_datetime&order=ASC&acceptance=1",
+    "selector": "json:result",
+    "keyword": "IT|DX|デジタル|クラウド",
+    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preview": "",
+    "updated_at_jst": "2025-12-14 11:52:41 JST"
   }
 }
