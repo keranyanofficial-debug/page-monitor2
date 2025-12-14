@@ -1,3 +1,3 @@
 id,name,url,selector,keyword
-jma_extra,気象庁 防災情報,https://www.data.jma.go.jp/developer/xml/feed/extra.xml,,地震|津波|特別警報
-egov_news,e-Gov お知らせ,https://laws.e-gov.go.jp/news/,,API|リリース
+jma_eqvol,気象庁(地震・津波),https://www.data.jma.go.jp/developer/xml/feed/eqvol.xml,,震度速報|震源・震度|緊急地震速報|津波警報|津波注意報|津波予報|津波情報|!火山|!噴火
+egov_law,法令APIv2(例),https://laws.e-gov.go.jp/api/2/keyword?keyword=個人情報,lawTitle,lawNum,updated,
