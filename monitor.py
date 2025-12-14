@@ -11,6 +11,7 @@ SNAPSHOT_JSON = "snapshots.json"
 
 MAX_ATOM_ITEMS = int(os.getenv("MAX_ATOM_ITEMS", "5"))
 MAX_HTML_LINKS = int(os.getenv("MAX_HTML_LINKS", "8"))
+MAX_JSON_ITEMS = int(os.getenv("MAX_JSON_ITEMS", "5"))
 JST = ZoneInfo("Asia/Tokyo")
 
 
@@ -27,10 +28,6 @@ def sha256(s: str) -> str:
 
 
 def parse_keywords(keyword: str):
-    """
-    keyword: '地震|津波|特別警報' みたいに OR 条件。
-    空ならNone（フィルタなし）
-    """
     k = (keyword or "").strip()
     if not k:
         return None
@@ -76,8 +73,14 @@ def save_snapshots(data):
 def fetch(url: str):
     r = requests.get(url, headers={"User-Agent": "PageMonitorBot/1.0"}, timeout=30)
     r.raise_for_status()
-    r.encoding = "utf-8"
+
+    # 文字化け対策：JSONはほぼUTF-8なので優先。その他はヘッダ→推定。
     ctype = (r.headers.get("Content-Type") or "").lower()
+    if "application/json" in ctype:
+        text = r.content.decode("utf-8", errors="replace")
+        return text, ctype
+
+    r.encoding = r.encoding or "utf-8"
     return r.text, ctype
 
 
@@ -118,7 +121,6 @@ def parse_atom(xml_text: str, base_url: str, kws):
 
     entries = entries[:MAX_ATOM_ITEMS]
 
-    # フィルタ後の内容だけで比較（＝関係ない更新では通知しない）
     hash_src = "\n".join(
         [f"{x.get('id')}|{x.get('updated')}|{x.get('title')}|{x.get('link')}" for x in entries]
     )
@@ -129,13 +131,10 @@ def parse_atom(xml_text: str, base_url: str, kws):
         t = x.get("title") or "(no title)"
         u = x.get("link") or ""
         up = x.get("updated") or ""
-        if up:
-            lines.append(f"- {t} ({up})")
-        else:
-            lines.append(f"- {t}")
+        lines.append(f"- {t}" + (f" ({up})" if up else ""))
         if u:
             lines.append(f"  {u}")
-        lines.append("")  # 空行で見やすく
+        lines.append("")
 
     return hash_src, preview, lines
 
@@ -143,18 +142,16 @@ def parse_atom(xml_text: str, base_url: str, kws):
 def parse_html(html: str, base_url: str, selector: str, kws):
     soup = BeautifulSoup(html, "html.parser")
 
-    # selector指定：その部分だけ監視
-    if selector:
+    if selector and not selector.startswith("json:"):
         el = soup.select_one(selector)
         text = normalize_text(el.get_text(" ", strip=True)) if el else ""
         if not match_any(text, kws):
-            text = ""  # キーワード不一致なら空扱い（通知しない）
+            text = ""
         hash_src = text
         preview = text[:300]
         lines = [f"- value: {preview}"] if preview else ["- value: (no keyword match / empty)"]
         return hash_src, preview, lines
 
-    # selector無し：タイトル＋主要リンクを抽出（要約）
     title = normalize_text(soup.title.get_text(strip=True)) if soup.title else ""
     main = soup.find("main") or soup.body or soup
 
@@ -179,8 +176,7 @@ def parse_html(html: str, base_url: str, selector: str, kws):
     hash_src = title + "\n" + "\n".join([f"{t}|{u}" for t, u in links])
     preview = (title or (links[0][0] if links else ""))[:300]
 
-    lines = []
-    lines.append(f"- title: {title}" if title else "- title: (none)")
+    lines = [f"- title: {title}" if title else "- title: (none)"]
     if links:
         lines.append("- matched links:")
         for t, u in links:
@@ -192,11 +188,91 @@ def parse_html(html: str, base_url: str, selector: str, kws):
     return hash_src, preview, lines
 
 
+def parse_json_api(json_text: str, selector: str, kws):
+    """
+    selector:
+      - "json:result" のように listキーを指定（jGrantsは result）
+      - 空なら、result/items/data を自動推定
+    """
+    try:
+        data = json.loads(json_text)
+    except Exception:
+        # JSONとして壊れてたら、文字列として比較
+        src = normalize_text(json_text)
+        return src, src[:300], ["- raw(json): " + src[:300]]
+
+    list_key = None
+    if (selector or "").startswith("json:"):
+        list_key = (selector.split("json:", 1)[1] or "").strip() or None
+
+    items = None
+    if isinstance(data, list):
+        items = data
+    elif isinstance(data, dict):
+        if list_key and isinstance(data.get(list_key), list):
+            items = data.get(list_key)
+        else:
+            for k in ["result", "items", "data"]:
+                if isinstance(data.get(k), list):
+                    items = data.get(k)
+                    break
+
+    if not isinstance(items, list):
+        # 取得できる一覧がない場合、dict全体の一部で比較
+        src = json.dumps(data, ensure_ascii=False, sort_keys=True)
+        if not match_any(src, kws):
+            src = ""
+        return src, src[:300], ["- json(dict)"]
+
+    # 一覧の中身を「ID/タイトル/期限/URL」中心に整形
+    picked = []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        title = normalize_text(it.get("title") or it.get("name") or "")
+        _id = normalize_text(it.get("id") or it.get("code") or it.get("name") or "")
+        end = normalize_text(it.get("acceptance_end_datetime") or it.get("updated") or it.get("updated_at") or "")
+        url = normalize_text(it.get("front_subsidy_detail_page_url") or it.get("url") or it.get("link") or "")
+
+        blob = f"{_id} {title} {end} {url}"
+        if not match_any(blob, kws):
+            continue
+
+        picked.append({"id": _id, "title": title, "end": end, "url": url})
+        if len(picked) >= MAX_JSON_ITEMS:
+            break
+
+    # フィルタ後だけで比較（＝関係ない更新で通知しない）
+    hash_src = "\n".join([f"{x['id']}|{x['title']}|{x['end']}|{x['url']}" for x in picked])
+    preview = " / ".join([x["title"] for x in picked if x["title"]])[:300]
+
+    lines = []
+    for x in picked:
+        t = x["title"] or "(no title)"
+        lines.append(f"- {t}" + (f" ({x['end']})" if x["end"] else ""))
+        if x["url"]:
+            lines.append(f"  {x['url']}")
+        lines.append("")
+
+    if not lines:
+        lines = ["- (no keyword match / empty)"]
+
+    return hash_src, preview, lines
+
+
 def extract_observation(url: str, body: str, content_type: str, selector: str, keyword: str):
     kws = parse_keywords(keyword)
-    is_xml = url.lower().endswith(".xml") or ("xml" in content_type)
+
+    # JSON（公式API）優先
+    if "application/json" in (content_type or "").lower() or (selector or "").startswith("json:"):
+        return parse_json_api(body, selector, kws)
+
+    # XML/Atom
+    is_xml = url.lower().endswith(".xml") or ("xml" in (content_type or "").lower())
     if is_xml:
         return parse_atom(body, url, kws)
+
+    # HTML
     return parse_html(body, url, selector, kws)
 
 
@@ -249,16 +325,10 @@ def main():
 
         prev = snapshots.get(tid)
 
-        # 初回は登録だけ（通知しない）
         if not prev:
             snapshots[tid] = {
-                "name": name,
-                "url": url,
-                "selector": selector,
-                "keyword": keyword,
-                "hash": new_hash,
-                "preview": new_preview,
-                "updated_at_jst": ts,
+                "name": name, "url": url, "selector": selector, "keyword": keyword,
+                "hash": new_hash, "preview": new_preview, "updated_at_jst": ts
             }
             print(f"First seen: {tid}")
             time.sleep(1)
@@ -279,13 +349,8 @@ def main():
             changes_msgs.append(msg)
 
             snapshots[tid] = {
-                "name": name,
-                "url": url,
-                "selector": selector,
-                "keyword": keyword,
-                "hash": new_hash,
-                "preview": new_preview,
-                "updated_at_jst": ts,
+                "name": name, "url": url, "selector": selector, "keyword": keyword,
+                "hash": new_hash, "preview": new_preview, "updated_at_jst": ts
             }
 
         time.sleep(1)
