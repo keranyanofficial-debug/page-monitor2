@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 import xml.etree.ElementTree as ET
-import re
 
 TARGETS_CSV = "targets.csv"
 SNAPSHOT_JSON = "snapshots.json"
@@ -23,22 +22,48 @@ def normalize_text(s: str) -> str:
 def sha256(s: str) -> str:
     return hashlib.sha256((s or "").encode("utf-8")).hexdigest()
 
+# ----------------------------
+# keyword: include/exclude 対応
+# ----------------------------
 def parse_keywords(keyword: str):
-    """keyword: '地震|津波|特別警報' みたいに OR 条件。空ならNone"""
+    """
+    keyword例（OR）:
+      '地震|津波|特別警報'  => includes=["地震","津波","特別警報"], excludes=[]
+    除外（!）:
+      '地震|津波|!火山|!噴火' => includes=["地震","津波"], excludes=["火山","噴火"]
+    """
     k = (keyword or "").strip()
     if not k:
         return None
+
     parts = [p.strip() for p in k.split("|") if p.strip()]
     if not parts:
         return None
-    # 大文字小文字を気にしない検索
-    return [p.lower() for p in parts]
+
+    includes, excludes = [], []
+    for p in parts:
+        if p.startswith("!"):
+            x = p[1:].strip().lower()
+            if x:
+                excludes.append(x)
+        else:
+            includes.append(p.lower())
+
+    return {"includes": includes, "excludes": excludes}
 
 def match_any(text: str, kws):
     if not kws:
         return True  # フィルタ無しは常にマッチ
     t = (text or "").lower()
-    return any(k in t for k in kws)
+
+    # excludeに引っかかったら即NG
+    if any(x in t for x in kws.get("excludes", [])):
+        return False
+
+    inc = kws.get("includes", [])
+    if not inc:
+        return True  # include無し＆excludeだけ なら除外に引っかからない限りOK
+    return any(k in t for k in inc)
 
 def load_targets():
     targets = []
@@ -66,10 +91,15 @@ def save_snapshots(data):
 def fetch(url: str):
     r = requests.get(url, headers={"User-Agent":"PageMonitorBot/1.0"}, timeout=30)
     r.raise_for_status()
+    # 文字コードはサーバが返す情報に任せつつ、念のためutf-8へ寄せる
+    # （JSON/Atomはutf-8が多い）
     r.encoding = "utf-8"
     ctype = (r.headers.get("Content-Type") or "").lower()
     return r.text, ctype
 
+# ----------------------------
+# Atom(XML) 解析
+# ----------------------------
 def parse_atom(xml_text: str, base_url: str, kws):
     root = ET.fromstring(xml_text)
 
@@ -97,7 +127,7 @@ def parse_atom(xml_text: str, base_url: str, kws):
                 if href:
                     link = urljoin(base_url, href)
 
-        # キーワードフィルタ（タイトル＋URLも対象にする）
+        # キーワードフィルタ（タイトル＋URLも対象）
         if not match_any(title + " " + link, kws):
             continue
 
@@ -121,10 +151,13 @@ def parse_atom(xml_text: str, base_url: str, kws):
             lines.append(f"- {t}")
         if u:
             lines.append(f"  {u}")
-        lines.append("")  # 見やすく空行
+        lines.append("")
 
     return hash_src, preview, lines
 
+# ----------------------------
+# HTML 解析
+# ----------------------------
 def parse_html(html: str, base_url: str, selector: str, kws):
     soup = BeautifulSoup(html, "html.parser")
 
@@ -177,13 +210,101 @@ def parse_html(html: str, base_url: str, selector: str, kws):
         lines.append("- matched links: (none)")
     return hash_src, preview, lines
 
+# ----------------------------
+# JSON API 解析（追加）
+# ----------------------------
+def _pick_first_list(obj):
+    """JSONの中から 'それっぽいリスト' を拾う（汎用）"""
+    if isinstance(obj, list):
+        return obj
+    if isinstance(obj, dict):
+        for k in ["items", "results", "data", "laws", "list"]:
+            v = obj.get(k)
+            if isinstance(v, list):
+                return v
+    return None
+
+def _flatten_dict(d, keys):
+    out = []
+    for k in keys:
+        v = d.get(k)
+        if v is None:
+            continue
+        if isinstance(v, (dict, list)):
+            v = json.dumps(v, ensure_ascii=False, sort_keys=True)
+        out.append(f"{k}={normalize_text(str(v))}")
+    return " ".join(out)
+
+def parse_json_api(json_text: str, kws, selector: str = ""):
+    """
+    JSON API監視:
+    - selectorがある場合：'key1,key2,key3' で重要キー指定（JSON専用）
+    - selectorが空：itemsっぽいリストを推定→重要フィールドを行化→ソートして安定化
+    """
+    obj = json.loads(json_text)
+
+    # JSON用 selector: "lawTitle,lawNum,updated" のようにキー指定
+    keys = [x.strip() for x in (selector or "").split(",") if x.strip()]
+
+    lines = []
+    hash_lines = []
+
+    lst = _pick_first_list(obj)
+    if lst is not None and all(isinstance(x, dict) for x in lst):
+        for item in lst:
+            if keys:
+                row = _flatten_dict(item, keys)
+            else:
+                prefer = ["id", "lawId", "lawNum", "lawTitle", "title", "name", "updated", "updateDate", "date", "url", "link"]
+                use = [k for k in prefer if k in item]
+                if not use:
+                    use = list(item.keys())[:6]
+                row = _flatten_dict(item, use)
+
+            if not match_any(row, kws):
+                continue
+
+            lines.append(f"- {row}")
+            hash_lines.append(row)
+
+        # 順番ブレで差分が出ないように安定化
+        hash_lines = sorted(hash_lines)
+
+        hash_src = "\n".join(hash_lines)
+        preview = (hash_lines[0] if hash_lines else "(no match)")[:300]
+        return hash_src, preview, lines[:MAX_ATOM_ITEMS]
+
+    # リスト形式じゃない場合：全体を正規化して監視（ただし差分は荒れやすいので最終手段）
+    canon = json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    if not match_any(canon, kws):
+        canon = ""
+
+    hash_src = canon
+    preview = canon[:300] if canon else "(no keyword match / empty)"
+    lines = [f"- json: {preview}"]
+    return hash_src, preview, lines
+
+# ----------------------------
+# 形式判定 → 抽出
+# ----------------------------
 def extract_observation(url: str, body: str, content_type: str, selector: str, keyword: str):
     kws = parse_keywords(keyword)
-    is_xml = url.lower().endswith(".xml") or ("xml" in content_type)
+
+    ct = (content_type or "").lower()
+    is_json = ("json" in ct) or url.lower().endswith(".json")
+    is_xml = url.lower().endswith(".xml") or ("xml" in ct)
+
+    if is_json:
+        return parse_json_api(body, kws, selector)
+
     if is_xml:
         return parse_atom(body, url, kws)
+
     return parse_html(body, url, selector, kws)
 
+# ----------------------------
+# Discord通知
+# ----------------------------
 def discord_post(webhook_url: str, text: str):
     if not webhook_url:
         print("DISCORD_WEBHOOK_URL empty; skip notify")
