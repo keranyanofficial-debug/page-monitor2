@@ -36,7 +36,7 @@ jobs:
       - name: Run monitor
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          NOTIFY_FIRST_SEEN: "1"          # デモ中だけON推奨（確認後は0 or 削除）
+          NOTIFY_FIRST_SEEN: "0"          # デモ中だけON推奨（確認後は0 or 削除）
           DISCORD_SUPPRESS_EMBEDS: "1"    # GitHubリンクの埋め込みを抑制して見やすく
           MAX_ATOM_ITEMS: "5"
           MAX_HTML_LINKS: "8"
