@@ -32,5 +32,23 @@
     "hash": "653785e241f42e29478f977a2825c7622e9f33ff7817f870126b63e53467ba09",
     "preview": "お知らせ | e-Gov法令検索",
     "updated_at_jst": "2025-12-14 09:39:38 JST"
+  },
+  "jma_eqvol": {
+    "name": "気象庁(地震・津波)",
+    "url": "https://www.data.jma.go.jp/developer/xml/feed/eqvol.xml",
+    "selector": "",
+    "keyword": "震度速報|震源・震度|緊急地震速報|津波警報|津波注意報|津波予報|津波情報|!火山|!噴火",
+    "hash": "18663923349d7eef9604bed37e072641cecdf3193197ee4ea86ee76d2adfd5b6",
+    "preview": "震源・震度に関する情報 / 震源・震度に関する情報",
+    "updated_at_jst": "2025-12-14 10:16:04 JST"
+  },
+  "egov_law": {
+    "name": "法令APIv2(例)",
+    "url": "https://laws.e-gov.go.jp/api/2/keyword?keyword=個人情報",
+    "selector": "lawTitle",
+    "keyword": "lawNum",
+    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preview": "(no match)",
+    "updated_at_jst": "2025-12-14 10:16:04 JST"
   }
 }
