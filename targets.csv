@@ -1,5 +1,5 @@
 id,name,url,selector,keyword
 jma_eqvol,気象庁 地震・津波（高頻度Atom）,https://www.data.jma.go.jp/developer/xml/feed/eqvol.xml,,緊急地震速報|震度速報|震源・震度|地震|津波|!火山|!噴火
 gh_runner_images_atom,GitHub actions/runner-images リリース（Atom）,https://github.com/actions/runner-images/releases.atom,,
-gh_runner_images_api,GitHub Releases API（runner-images / JSON）,https://api.github.com/repos/actions/runner-images/releases,tag_name,name,html_url,published_at,
+gh_runner_images_api,GitHub Releases API（runner-images / JSON）,https://api.github.com/repos/actions/runner-images/releases,"tag_name,name,html_url,published_at",
 gh_status_atom,GitHub Status（障害/メンテ / Atom）,https://www.githubstatus.com/history.atom,,
