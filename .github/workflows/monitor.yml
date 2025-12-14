@@ -3,25 +3,19 @@ name: Page Monitor
 on:
   workflow_dispatch:
   schedule:
-    # 毎日 09:10 JST（= 00:10 UTC）
+    # 毎日 00:10 UTC（= 日本時間 09:10）に実行
     - cron: "10 0 * * *"
 
 permissions:
   contents: write
 
-concurrency:
-  group: page-monitor
-  cancel-in-progress: true
-
 jobs:
   run:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: true
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -36,26 +30,17 @@ jobs:
       - name: Run monitor
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          NOTIFY_FIRST_SEEN: "0"          # デモ中だけON推奨（確認後は0 or 削除）
-          DISCORD_SUPPRESS_EMBEDS: "1"    # GitHubリンクの埋め込みを抑制して見やすく
-          MAX_ATOM_ITEMS: "5"
-          MAX_HTML_LINKS: "8"
-          SLEEP_SEC: "1"
-          HTTP_TIMEOUT: "30"
         run: |
           python monitor.py
 
-      - name: Commit snapshot if changed
+      - name: Commit snapshots if changed
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add snapshots.json
-          if git diff --cached --quiet; then
+          if git status --porcelain | grep -q "snapshots.json"; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add snapshots.json
+            git commit -m "Update snapshots.json"
+            git push
+          else
             echo "No snapshot changes."
-            exit 0
           fi
-
-          git commit -m "Update snapshots"
-          git pull --rebase
-          git push
