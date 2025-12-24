@@ -20,9 +20,9 @@
     "url": "https://www.data.jma.go.jp/developer/xml/feed/extra.xml",
     "selector": "",
     "keyword": "地震|津波|特別警報",
-    "hash": "b6ea34ef8989027d87af75c2e606374d266189a2150f0ba3ae9e23b96a4134dd",
+    "hash": "ef0dc0728ebc15e2eddaaf25f4e3cfd22f7d3d1005b640c2cdc547948e227438",
     "preview": "気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報 / 気象特別警報・警報・注意報",
-    "updated_at_jst": "2025-12-23 12:56:47 JST"
+    "updated_at_jst": "2025-12-24 12:53:34 JST"
   },
   "egov_news": {
     "name": "e-Gov お知らせ",
